@@ -1,545 +1,538 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2759
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPS Kundetilfredshed - CPC Social</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Survey View -->
+        <div id="survey-view" class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <div id="survey-form">
+                        <div class="text-center mb-8">
+                            <div class="flex items-center justify-center gap-2 mb-4">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                </svg>
+                                <h1 class="text-3xl font-bold text-gray-800">Kundetilfredshed</h1>
+                            </div>
+                            <p class="text-gray-600">Vi vil gerne høre din mening</p>
+                            <p class="text-xs text-purple-500 mt-2 font-medium">Powered by Supabase</p>
+                            <div id="customer-info" class="mt-4 p-3 bg-blue-50 rounded-lg hidden">
+                                <p class="text-blue-700 font-medium">Kunde: <span id="customer-name"></span></p>
+                            </div>
+                        </div>
 
-\f0\fs24 \cf0 <!DOCTYPE html>\
-<html lang="da">\
-<head>\
-    <meta charset="UTF-8">\
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
-    <title>NPS Kundetilfredshed - CPC Social</title>\
-    <script src="https://cdn.tailwindcss.com"></script>\
-    <style>\
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');\
-        body \{ font-family: 'Inter', sans-serif; \}\
-        .spinner \{\
-            border: 3px solid #f3f4f6;\
-            border-top: 3px solid #3b82f6;\
-            border-radius: 50%;\
-            width: 24px;\
-            height: 24px;\
-            animation: spin 1s linear infinite;\
-        \}\
-        @keyframes spin \{\
-            0% \{ transform: rotate(0deg); \}\
-            100% \{ transform: rotate(360deg); \}\
-        \}\
-    </style>\
-</head>\
-<body>\
-    <div id="app">\
-        <!-- Survey View -->\
-        <div id="survey-view" class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">\
-            <div class="max-w-2xl mx-auto">\
-                <div class="bg-white rounded-2xl shadow-xl p-8">\
-                    <div id="survey-form">\
-                        <div class="text-center mb-8">\
-                            <div class="flex items-center justify-center gap-2 mb-4">\
-                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">\
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>\
-                                </svg>\
-                                <h1 class="text-3xl font-bold text-gray-800">Kundetilfredshed</h1>\
-                            </div>\
-                            <p class="text-gray-600">Vi vil gerne h\'f8re din mening</p>\
-                            <p class="text-xs text-purple-500 mt-2 font-medium">Powered by Supabase</p>\
-                            <div id="customer-info" class="mt-4 p-3 bg-blue-50 rounded-lg hidden">\
-                                <p class="text-blue-700 font-medium">Kunde: <span id="customer-name"></span></p>\
-                            </div>\
-                        </div>\
-\
-                        <div class="mb-6">\
-                            <label class="block text-lg font-medium text-gray-700 mb-2">\
-                                Dit navn *\
-                            </label>\
-                            <input\
-                                type="text"\
-                                id="respondent-name"\
-                                placeholder="Indtast dit fulde navn"\
-                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"\
-                                required\
-                            />\
-                        </div>\
-\
-                        <div class="mb-8">\
-                            <label class="block text-lg font-medium text-gray-700 mb-2">\
-                                Din email *\
-                            </label>\
-                            <input\
-                                type="email"\
-                                id="respondent-email"\
-                                placeholder="din.email@firma.dk"\
-                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"\
-                                required\
-                            />\
-                        </div>\
-\
-                        <div class="mb-8">\
-                            <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">\
-                                Hvor sandsynligt er det, at du vil anbefale os til en ven eller kollega?\
-                            </h2>\
-                            \
-                            <div class="grid grid-cols-11 gap-2 mb-4" id="score-buttons"></div>\
-                            <div class="flex justify-between mt-2 text-sm text-gray-500">\
-                                <span>Ikke sandsynligt</span>\
-                                <span>Meget sandsynligt</span>\
-                            </div>\
-                        </div>\
-\
-                        <div class="mb-8">\
-                            <label class="block text-lg font-medium text-gray-700 mb-3">\
-                                Har du yderligere kommentarer? (valgfrit)\
-                            </label>\
-                            <textarea\
-                                id="comment"\
-                                placeholder="Del dine tanker med os..."\
-                                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"\
-                                rows="4"\
-                            ></textarea>\
-                        </div>\
-\
-                        <button\
-                            id="submit-btn"\
-                            class="w-full bg-gray-300 text-gray-500 font-bold py-4 px-6 rounded-lg text-lg cursor-not-allowed"\
-                            disabled\
-                        >\
-                            Send Feedback\
-                        </button>\
-                    </div>\
-\
-                    <div id="thank-you" class="text-center py-12 hidden">\
-                        <div class="text-6xl mb-4">\uc0\u55357 \u56911 </div>\
-                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Tak for din feedback!</h2>\
-                        <p class="text-gray-600 mb-4">Dit svar er blevet gemt i vores Supabase database.</p>\
-                        <p class="text-sm text-gray-500 mb-8">Vi har ogs\'e5 sendt en notifikation til vores team.</p>\
-                        <button\
-                            id="view-dashboard"\
-                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"\
-                        >\
-                            Se Dashboard (Admin)\
-                        </button>\
-                    </div>\
-                </div>\
-            </div>\
-        </div>\
-\
-        <!-- Dashboard View -->\
-        <div id="dashboard-view" class="min-h-screen bg-gray-50 p-6 hidden">\
-            <div class="max-w-7xl mx-auto">\
-                <!-- Header -->\
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">\
-                    <div class="flex justify-between items-center">\
-                        <div>\
-                            <div class="flex items-center gap-2 mb-2">\
-                                <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">\
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>\
-                                </svg>\
-                                <h1 class="text-3xl font-bold text-gray-800">NPS Dashboard</h1>\
-                            </div>\
-                            <p class="text-gray-600">Real-time Net Promoter Score Analyse med Supabase</p>\
-                        </div>\
-                        <div class="flex gap-3">\
-                            <button\
-                                id="refresh-data"\
-                                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"\
-                            >\
-                                <div class="spinner hidden" id="loading-spinner"></div>\
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">\
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"></path>\
-                                </svg>\
-                                <span id="refresh-text">Refresh Data</span>\
-                            </button>\
-                            <button\
-                                id="export-csv"\
-                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"\
-                            >\
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">\
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>\
-                                </svg>\
-                                Export CSV\
-                            </button>\
-                            <button\
-                                id="back-to-survey"\
-                                class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"\
-                            >\
-                                Tilbage til Unders\'f8gelse\
-                            </button>\
-                        </div>\
-                    </div>\
-                </div>\
-\
-                <!-- Stats Cards -->\
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">\
-                    <div class="bg-white rounded-xl shadow-lg p-6">\
-                        <div class="flex items-center justify-between">\
-                            <div>\
-                                <p class="text-gray-600 text-sm">Samlet NPS Score</p>\
-                                <p class="text-3xl font-bold text-blue-600" id="total-nps">0</p>\
-                            </div>\
-                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">\
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>\
-                            </svg>\
-                        </div>\
-                    </div>\
-                    \
-                    <div class="bg-white rounded-xl shadow-lg p-6">\
-                        <div class="flex items-center justify-between">\
-                            <div>\
-                                <p class="text-gray-600 text-sm">Totale Svar</p>\
-                                <p class="text-3xl font-bold text-gray-800" id="total-responses">0</p>\
-                            </div>\
-                            <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">\
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>\
-                            </svg>\
-                        </div>\
-                    </div>\
-                    \
-                    <div class="bg-white rounded-xl shadow-lg p-6">\
-                        <div class="flex items-center justify-between">\
-                            <div>\
-                                <p class="text-gray-600 text-sm">Promoters</p>\
-                                <p class="text-3xl font-bold text-green-600" id="promoters-count">0</p>\
-                            </div>\
-                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">\
-                                <div class="w-4 h-4 bg-green-600 rounded-full"></div>\
-                            </div>\
-                        </div>\
-                    </div>\
-                    \
-                    <div class="bg-white rounded-xl shadow-lg p-6">\
-                        <div class="flex items-center justify-between">\
-                            <div>\
-                                <p class="text-gray-600 text-sm">Detractors</p>\
-                                <p class="text-3xl font-bold text-red-600" id="detractors-count">0</p>\
-                            </div>\
-                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">\
-                                <div class="w-4 h-4 bg-red-600 rounded-full"></div>\
-                            </div>\
-                        </div>\
-                    </div>\
-                </div>\
-\
-                <!-- Data Table -->\
-                <div class="bg-white rounded-xl shadow-lg p-6">\
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Seneste Svar</h3>\
-                    <div class="overflow-x-auto">\
-                        <table class="w-full">\
-                            <thead>\
-                                <tr class="border-b">\
-                                    <th class="text-left p-3">Dato</th>\
-                                    <th class="text-left p-3">Kunde</th>\
-                                    <th class="text-left p-3">Navn</th>\
-                                    <th class="text-left p-3">Email</th>\
-                                    <th class="text-left p-3">Score</th>\
-                                    <th class="text-left p-3">Kategori</th>\
-                                    <th class="text-left p-3">Kommentar</th>\
-                                </tr>\
-                            </thead>\
-                            <tbody id="responses-table">\
-                                <tr>\
-                                    <td colspan="7" class="p-8 text-center text-gray-500">\
-                                        Indl\'e6ser data fra Supabase...\
-                                    </td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>\
-                </div>\
-            </div>\
-        </div>\
-    </div>\
-\
-    <script>\
-        // Configuration\
-        const SUPABASE_URL = 'https://urfpzxtundzfwiakiiog.supabase.co';\
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyZnB6eHR1bmR6ZndpYWtpaW9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMDY0NzEsImV4cCI6MjA3MjY4MjQ3MX0.8KV7viGJlz6m6r3rZTR5G1dYFz5pdzd9xmgi0IakCjo';\
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWChWvDa6ddRgYSDPMNSra0nU_0P8IMuT0p5AX6MvfWYLhD3Y46VSHvWDFbR30uX/exec';\
-        \
-        // State\
-        let selectedScore = null;\
-        let customerName = '';\
-        let allResponses = [];\
-        \
-        // Initialize\
-        document.addEventListener('DOMContentLoaded', function() \{\
-            // Get customer name from URL\
-            const urlParams = new URLSearchParams(window.location.search);\
-            customerName = urlParams.get('kunde') || '';\
-            \
-            if (customerName) \{\
-                document.getElementById('customer-name').textContent = customerName;\
-                document.getElementById('customer-info').classList.remove('hidden');\
-            \}\
-            \
-            // Generate score buttons\
-            generateScoreButtons();\
-            \
-            // Add event listeners\
-            document.getElementById('respondent-name').addEventListener('input', validateForm);\
-            document.getElementById('respondent-email').addEventListener('input', validateForm);\
-            document.getElementById('submit-btn').addEventListener('click', handleSubmit);\
-            document.getElementById('view-dashboard').addEventListener('click', showDashboard);\
-            document.getElementById('back-to-survey').addEventListener('click', showSurvey);\
-            document.getElementById('refresh-data').addEventListener('click', loadResponses);\
-            document.getElementById('export-csv').addEventListener('click', exportToCSV);\
-        \});\
-        \
-        function generateScoreButtons() \{\
-            const container = document.getElementById('score-buttons');\
-            \
-            for (let i = 0; i <= 10; i++) \{\
-                const button = document.createElement('button');\
-                button.textContent = i;\
-                button.className = getScoreButtonClass(i, false);\
-                button.addEventListener('click', () => selectScore(i));\
-                container.appendChild(button);\
-            \}\
-        \}\
-        \
-        function getScoreButtonClass(score, selected) \{\
-            const baseClass = 'h-12 rounded-lg font-bold text-lg transition-all duration-200';\
-            \
-            if (selected) \{\
-                if (score <= 6) return `$\{baseClass\} bg-red-500 text-white shadow-lg transform scale-105`;\
-                if (score <= 8) return `$\{baseClass\} bg-orange-400 text-white shadow-lg transform scale-105`;\
-                return `$\{baseClass\} bg-green-500 text-white shadow-lg transform scale-105`;\
-            \} else \{\
-                if (score <= 6) return `$\{baseClass\} bg-red-100 text-red-700 hover:bg-red-200`;\
-                if (score <= 8) return `$\{baseClass\} bg-orange-100 text-orange-700 hover:bg-orange-200`;\
-                return `$\{baseClass\} bg-green-100 text-green-700 hover:bg-green-200`;\
-            \}\
-        \}\
-        \
-        function selectScore(score) \{\
-            selectedScore = score;\
-            \
-            const buttons = document.querySelectorAll('#score-buttons button');\
-            buttons.forEach((button, index) => \{\
-                button.className = getScoreButtonClass(index, index === score);\
-            \});\
-            \
-            validateForm();\
-        \}\
-        \
-        function validateForm() \{\
-            const name = document.getElementById('respondent-name').value.trim();\
-            const email = document.getElementById('respondent-email').value.trim();\
-            const submitBtn = document.getElementById('submit-btn');\
-            \
-            const isValid = selectedScore !== null && name && email;\
-            \
-            if (isValid) \{\
-                submitBtn.disabled = false;\
-                submitBtn.className = 'w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer';\
-                submitBtn.textContent = 'Send Feedback';\
-            \} else \{\
-                submitBtn.disabled = true;\
-                submitBtn.className = 'w-full bg-gray-300 text-gray-500 font-bold py-4 px-6 rounded-lg text-lg cursor-not-allowed';\
-                submitBtn.textContent = 'Udfyld alle felter';\
-            \}\
-        \}\
-        \
-        function getNPSCategory(score) \{\
-            if (score >= 9) return 'Promoter';\
-            if (score >= 7) return 'Passiv';\
-            return 'Detractor';\
-        \}\
-        \
-        async function handleSubmit() \{\
-            const name = document.getElementById('respondent-name').value.trim();\
-            const email = document.getElementById('respondent-email').value.trim();\
-            const comment = document.getElementById('comment').value.trim();\
-            \
-            if (selectedScore === null || !name || !email) \{\
-                alert('Udfyld venligst alle p\'e5kr\'e6vede felter');\
-                return;\
-            \}\
-            \
-            const submitBtn = document.getElementById('submit-btn');\
-            submitBtn.textContent = 'Sender til database...';\
-            submitBtn.disabled = true;\
-            \
-            try \{\
-                const responseData = \{\
-                    kunde: customerName || 'Test Kunde',\
-                    navn: name,\
-                    email: email,\
-                    score: selectedScore,\
-                    kategori: getNPSCategory(selectedScore),\
-                    kommentar: comment,\
-                    dato: new Date().toISOString().split('T')[0]\
-                \};\
-                \
-                console.log('Sending to Supabase:', responseData);\
-                \
-                // Send to Supabase\
-                const response = await fetch(`$\{SUPABASE_URL\}/rest/v1/nps_responses`, \{\
-                    method: 'POST',\
-                    headers: \{\
-                        'apikey': SUPABASE_ANON_KEY,\
-                        'Authorization': `Bearer $\{SUPABASE_ANON_KEY\}`,\
-                        'Content-Type': 'application/json',\
-                        'Prefer': 'return=representation'\
-                    \},\
-                    body: JSON.stringify(responseData)\
-                \});\
-                \
-                if (response.ok) \{\
-                    const result = await response.json();\
-                    console.log('Supabase success:', result);\
-                    \
-                    // Send email notification\
-                    try \{\
-                        await fetch(GOOGLE_SCRIPT_URL, \{\
-                            method: 'POST',\
-                            headers: \{ 'Content-Type': 'application/json' \},\
-                            body: JSON.stringify(responseData)\
-                        \});\
-                        console.log('Email notification sent');\
-                    \} catch (emailError) \{\
-                        console.log('Email notification failed:', emailError);\
-                    \}\
-                    \
-                    // Show thank you\
-                    document.getElementById('survey-form').classList.add('hidden');\
-                    document.getElementById('thank-you').classList.remove('hidden');\
-                    \
-                \} else \{\
-                    const error = await response.text();\
-                    throw new Error(`Supabase error: $\{error\}`);\
-                \}\
-                \
-            \} catch (error) \{\
-                console.error('Error:', error);\
-                alert('Der opstod en fejl ved indsendelse: ' + error.message);\
-                submitBtn.textContent = 'Send Feedback';\
-                submitBtn.disabled = false;\
-            \}\
-        \}\
-        \
-        async function loadResponses() \{\
-            const refreshBtn = document.getElementById('refresh-data');\
-            const refreshText = document.getElementById('refresh-text');\
-            const spinner = document.getElementById('loading-spinner');\
-            \
-            refreshText.textContent = 'Indl\'e6ser...';\
-            spinner.classList.remove('hidden');\
-            \
-            try \{\
-                const response = await fetch(`$\{SUPABASE_URL\}/rest/v1/nps_responses?select=*&order=created_at.desc`, \{\
-                    headers: \{\
-                        'apikey': SUPABASE_ANON_KEY,\
-                        'Authorization': `Bearer $\{SUPABASE_ANON_KEY\}`,\
-                        'Content-Type': 'application/json'\
-                    \}\
-                \});\
-                \
-                if (response.ok) \{\
-                    allResponses = await response.json();\
-                    updateDashboard();\
-                    refreshText.textContent = 'Opdateret!';\
-                    setTimeout(() => \{\
-                        refreshText.textContent = 'Refresh Data';\
-                    \}, 2000);\
-                \} else \{\
-                    throw new Error('Failed to load data');\
-                \}\
-            \} catch (error) \{\
-                console.error('Error loading responses:', error);\
-                refreshText.textContent = 'Fejl';\
-                setTimeout(() => \{\
-                    refreshText.textContent = 'Refresh Data';\
-                \}, 2000);\
-            \} finally \{\
-                spinner.classList.add('hidden');\
-            \}\
-        \}\
-        \
-        function updateDashboard() \{\
-            // Calculate stats\
-            const total = allResponses.length;\
-            const promoters = allResponses.filter(r => r.score >= 9).length;\
-            const detractors = allResponses.filter(r => r.score <= 6).length;\
-            const nps = total > 0 ? Math.round(((promoters - detractors) / total) * 100) : 0;\
-            \
-            // Update stats\
-            document.getElementById('total-nps').textContent = nps;\
-            document.getElementById('total-responses').textContent = total;\
-            document.getElementById('promoters-count').textContent = promoters;\
-            document.getElementById('detractors-count').textContent = detractors;\
-            \
-            // Update table\
-            const tableBody = document.getElementById('responses-table');\
-            \
-            if (total === 0) \{\
-                tableBody.innerHTML = `\
-                    <tr>\
-                        <td colspan="7" class="p-8 text-center text-gray-500">\
-                            Ingen data fundet. Send f\'f8rste NPS unders\'f8gelse!\
-                        </td>\
-                    </tr>\
-                `;\
-                return;\
-            \}\
-            \
-            tableBody.innerHTML = allResponses.slice(0, 20).map(response => \{\
-                const date = new Date(response.created_at).toLocaleDateString('da-DK');\
-                const scoreClass = response.score <= 6 ? 'bg-red-100 text-red-800' :\
-                                 response.score <= 8 ? 'bg-orange-100 text-orange-800' :\
-                                 'bg-green-100 text-green-800';\
-                \
-                return `\
-                    <tr class="border-b hover:bg-gray-50">\
-                        <td class="p-3">$\{date\}</td>\
-                        <td class="p-3 font-medium">$\{response.kunde\}</td>\
-                        <td class="p-3">$\{response.navn\}</td>\
-                        <td class="p-3 text-sm text-gray-600">$\{response.email\}</td>\
-                        <td class="p-3">\
-                            <span class="px-2 py-1 rounded text-sm $\{scoreClass\}">\
-                                $\{response.score\}\
-                            </span>\
-                        </td>\
-                        <td class="p-3 text-sm">$\{response.kategori\}</td>\
-                        <td class="p-3 text-sm max-w-xs truncate">$\{response.kommentar || '-'\}</td>\
-                    </tr>\
-                `;\
-            \}).join('');\
-        \}\
-        \
-        function exportToCSV() \{\
-            const headers = ['Dato', 'Kunde', 'Navn', 'Email', 'Score', 'Kategori', 'Kommentar'];\
-            const csvData = [\
-                headers.join(','),\
-                ...allResponses.map(r => [\
-                    new Date(r.created_at).toLocaleDateString('da-DK'),\
-                    r.kunde,\
-                    r.navn,\
-                    r.email,\
-                    r.score,\
-                    r.kategori,\
-                    `"$\{(r.kommentar || '').replace(/"/g, '""')\}"`\
-                ].join(','))\
-            ].join('\\n');\
-\
-            const blob = new Blob([csvData], \{ type: 'text/csv;charset=utf-8;' \});\
-            const link = document.createElement('a');\
-            link.href = URL.createObjectURL(blob);\
-            link.download = `NPS_Data_$\{new Date().toISOString().split('T')[0]\}.csv`;\
-            link.click();\
-        \}\
-        \
-        function showDashboard() \{\
-            document.getElementById('survey-view').classList.add('hidden');\
-            document.getElementById('dashboard-view').classList.remove('hidden');\
-            loadResponses();\
-        \}\
-        \
-        function showSurvey() \{\
-            document.getElementById('dashboard-view').classList.add('hidden');\
-            document.getElementById('survey-view').classList.remove('hidden');\
-        \}\
-    </script>\
-</body>\
-</html>}
+                        <div class="mb-6">
+                            <label class="block text-lg font-medium text-gray-700 mb-2">
+                                Dit navn *
+                            </label>
+                            <input
+                                type="text"
+                                id="respondent-name"
+                                placeholder="Indtast dit fulde navn"
+                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required
+                            />
+                        </div>
+
+                        <div class="mb-8">
+                            <label class="block text-lg font-medium text-gray-700 mb-2">
+                                Din email *
+                            </label>
+                            <input
+                                type="email"
+                                id="respondent-email"
+                                placeholder="din.email@firma.dk"
+                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required
+                            />
+                        </div>
+
+                        <div class="mb-8">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">
+                                Hvor sandsynligt er det, at du vil anbefale os til en ven eller kollega?
+                            </h2>
+                            
+                            <div class="grid grid-cols-11 gap-2 mb-4" id="score-buttons"></div>
+                            <div class="flex justify-between mt-2 text-sm text-gray-500">
+                                <span>Ikke sandsynligt</span>
+                                <span>Meget sandsynligt</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <label class="block text-lg font-medium text-gray-700 mb-3">
+                                Har du yderligere kommentarer? (valgfrit)
+                            </label>
+                            <textarea
+                                id="comment"
+                                placeholder="Del dine tanker med os..."
+                                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                rows="4"
+                            ></textarea>
+                        </div>
+
+                        <button
+                            id="submit-btn"
+                            class="w-full bg-gray-300 text-gray-500 font-bold py-4 px-6 rounded-lg text-lg cursor-not-allowed"
+                            disabled
+                        >
+                            Send Feedback
+                        </button>
+                    </div>
+
+                    <div id="thank-you" class="text-center py-12 hidden">
+                        <div class="text-6xl mb-4">🙏</div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Tak for din feedback!</h2>
+                        <p class="text-gray-600 mb-4">Dit svar er blevet gemt i vores Supabase database.</p>
+                        <p class="text-sm text-gray-500 mb-8">Vi har også sendt en notifikation til vores team.</p>
+                        <button
+                            id="view-dashboard"
+                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Se Dashboard (Admin)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="min-h-screen bg-gray-50 p-6 hidden">
+            <div class="max-w-7xl mx-auto">
+                <!-- Header -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                                </svg>
+                                <h1 class="text-3xl font-bold text-gray-800">NPS Dashboard</h1>
+                            </div>
+                            <p class="text-gray-600">Real-time Net Promoter Score Analyse med Supabase</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button
+                                id="refresh-data"
+                                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                            >
+                                <div class="spinner hidden" id="loading-spinner"></div>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"></path>
+                                </svg>
+                                <span id="refresh-text">Refresh Data</span>
+                            </button>
+                            <button
+                                id="export-csv"
+                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Export CSV
+                            </button>
+                            <button
+                                id="back-to-survey"
+                                class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                            >
+                                Tilbage til Undersøgelse
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Samlet NPS Score</p>
+                                <p class="text-3xl font-bold text-blue-600" id="total-nps">0</p>
+                            </div>
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Totale Svar</p>
+                                <p class="text-3xl font-bold text-gray-800" id="total-responses">0</p>
+                            </div>
+                            <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Promoters</p>
+                                <p class="text-3xl font-bold text-green-600" id="promoters-count">0</p>
+                            </div>
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <div class="w-4 h-4 bg-green-600 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Detractors</p>
+                                <p class="text-3xl font-bold text-red-600" id="detractors-count">0</p>
+                            </div>
+                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                <div class="w-4 h-4 bg-red-600 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Seneste Svar</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left p-3">Dato</th>
+                                    <th class="text-left p-3">Kunde</th>
+                                    <th class="text-left p-3">Navn</th>
+                                    <th class="text-left p-3">Email</th>
+                                    <th class="text-left p-3">Score</th>
+                                    <th class="text-left p-3">Kategori</th>
+                                    <th class="text-left p-3">Kommentar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="responses-table">
+                                <tr>
+                                    <td colspan="7" class="p-8 text-center text-gray-500">
+                                        Indlæser data fra Supabase...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://urfpzxtundzfwiakiiog.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyZnB6eHR1bmR6ZndpYWtpaW9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMDY0NzEsImV4cCI6MjA3MjY4MjQ3MX0.8KV7viGJlz6m6r3rZTR5G1dYFz5pdzd9xmgi0IakCjo';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWChWvDa6ddRgYSDPMNSra0nU_0P8IMuT0p5AX6MvfWYLhD3Y46VSHvWDFbR30uX/exec';
+        
+        // State
+        let selectedScore = null;
+        let customerName = '';
+        let allResponses = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get customer name from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            customerName = urlParams.get('kunde') || '';
+            
+            if (customerName) {
+                document.getElementById('customer-name').textContent = customerName;
+                document.getElementById('customer-info').classList.remove('hidden');
+            }
+            
+            // Generate score buttons
+            generateScoreButtons();
+            
+            // Add event listeners
+            document.getElementById('respondent-name').addEventListener('input', validateForm);
+            document.getElementById('respondent-email').addEventListener('input', validateForm);
+            document.getElementById('submit-btn').addEventListener('click', handleSubmit);
+            document.getElementById('view-dashboard').addEventListener('click', showDashboard);
+            document.getElementById('back-to-survey').addEventListener('click', showSurvey);
+            document.getElementById('refresh-data').addEventListener('click', loadResponses);
+            document.getElementById('export-csv').addEventListener('click', exportToCSV);
+        });
+        
+        function generateScoreButtons() {
+            const container = document.getElementById('score-buttons');
+            
+            for (let i = 0; i <= 10; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.className = getScoreButtonClass(i, false);
+                button.addEventListener('click', () => selectScore(i));
+                container.appendChild(button);
+            }
+        }
+        
+        function getScoreButtonClass(score, selected) {
+            const baseClass = 'h-12 rounded-lg font-bold text-lg transition-all duration-200';
+            
+            if (selected) {
+                if (score <= 6) return `${baseClass} bg-red-500 text-white shadow-lg transform scale-105`;
+                if (score <= 8) return `${baseClass} bg-orange-400 text-white shadow-lg transform scale-105`;
+                return `${baseClass} bg-green-500 text-white shadow-lg transform scale-105`;
+            } else {
+                if (score <= 6) return `${baseClass} bg-red-100 text-red-700 hover:bg-red-200`;
+                if (score <= 8) return `${baseClass} bg-orange-100 text-orange-700 hover:bg-orange-200`;
+                return `${baseClass} bg-green-100 text-green-700 hover:bg-green-200`;
+            }
+        }
+        
+        function selectScore(score) {
+            selectedScore = score;
+            
+            const buttons = document.querySelectorAll('#score-buttons button');
+            buttons.forEach((button, index) => {
+                button.className = getScoreButtonClass(index, index === score);
+            });
+            
+            validateForm();
+        }
+        
+        function validateForm() {
+            const name = document.getElementById('respondent-name').value.trim();
+            const email = document.getElementById('respondent-email').value.trim();
+            const submitBtn = document.getElementById('submit-btn');
+            
+            const isValid = selectedScore !== null && name && email;
+            
+            if (isValid) {
+                submitBtn.disabled = false;
+                submitBtn.className = 'w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer';
+                submitBtn.textContent = 'Send Feedback';
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = 'w-full bg-gray-300 text-gray-500 font-bold py-4 px-6 rounded-lg text-lg cursor-not-allowed';
+                submitBtn.textContent = 'Udfyld alle felter';
+            }
+        }
+        
+        function getNPSCategory(score) {
+            if (score >= 9) return 'Promoter';
+            if (score >= 7) return 'Passiv';
+            return 'Detractor';
+        }
+        
+        async function handleSubmit() {
+            const name = document.getElementById('respondent-name').value.trim();
+            const email = document.getElementById('respondent-email').value.trim();
+            const comment = document.getElementById('comment').value.trim();
+            
+            if (selectedScore === null || !name || !email) {
+                alert('Udfyld venligst alle påkrævede felter');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.textContent = 'Sender til database...';
+            submitBtn.disabled = true;
+            
+            try {
+                const responseData = {
+                    kunde: customerName || 'Test Kunde',
+                    navn: name,
+                    email: email,
+                    score: selectedScore,
+                    kategori: getNPSCategory(selectedScore),
+                    kommentar: comment,
+                    dato: new Date().toISOString().split('T')[0]
+                };
+                
+                console.log('Sending to Supabase:', responseData);
+                
+                // Send to Supabase
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/nps_responses`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(responseData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Supabase success:', result);
+                    
+                    // Send email notification
+                    try {
+                        await fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(responseData)
+                        });
+                        console.log('Email notification sent');
+                    } catch (emailError) {
+                        console.log('Email notification failed:', emailError);
+                    }
+                    
+                    // Show thank you
+                    document.getElementById('survey-form').classList.add('hidden');
+                    document.getElementById('thank-you').classList.remove('hidden');
+                    
+                } else {
+                    const error = await response.text();
+                    throw new Error(`Supabase error: ${error}`);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Der opstod en fejl ved indsendelse: ' + error.message);
+                submitBtn.textContent = 'Send Feedback';
+                submitBtn.disabled = false;
+            }
+        }
+        
+        async function loadResponses() {
+            const refreshBtn = document.getElementById('refresh-data');
+            const refreshText = document.getElementById('refresh-text');
+            const spinner = document.getElementById('loading-spinner');
+            
+            refreshText.textContent = 'Indlæser...';
+            spinner.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/nps_responses?select=*&order=created_at.desc`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    allResponses = await response.json();
+                    updateDashboard();
+                    refreshText.textContent = 'Opdateret!';
+                    setTimeout(() => {
+                        refreshText.textContent = 'Refresh Data';
+                    }, 2000);
+                } else {
+                    throw new Error('Failed to load data');
+                }
+            } catch (error) {
+                console.error('Error loading responses:', error);
+                refreshText.textContent = 'Fejl';
+                setTimeout(() => {
+                    refreshText.textContent = 'Refresh Data';
+                }, 2000);
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        }
+        
+        function updateDashboard() {
+            // Calculate stats
+            const total = allResponses.length;
+            const promoters = allResponses.filter(r => r.score >= 9).length;
+            const detractors = allResponses.filter(r => r.score <= 6).length;
+            const nps = total > 0 ? Math.round(((promoters - detractors) / total) * 100) : 0;
+            
+            // Update stats
+            document.getElementById('total-nps').textContent = nps;
+            document.getElementById('total-responses').textContent = total;
+            document.getElementById('promoters-count').textContent = promoters;
+            document.getElementById('detractors-count').textContent = detractors;
+            
+            // Update table
+            const tableBody = document.getElementById('responses-table');
+            
+            if (total === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="p-8 text-center text-gray-500">
+                            Ingen data fundet. Send første NPS undersøgelse!
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tableBody.innerHTML = allResponses.slice(0, 20).map(response => {
+                const date = new Date(response.created_at).toLocaleDateString('da-DK');
+                const scoreClass = response.score <= 6 ? 'bg-red-100 text-red-800' :
+                                 response.score <= 8 ? 'bg-orange-100 text-orange-800' :
+                                 'bg-green-100 text-green-800';
+                
+                return `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3">${date}</td>
+                        <td class="p-3 font-medium">${response.kunde}</td>
+                        <td class="p-3">${response.navn}</td>
+                        <td class="p-3 text-sm text-gray-600">${response.email}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 rounded text-sm ${scoreClass}">
+                                ${response.score}
+                            </span>
+                        </td>
+                        <td class="p-3 text-sm">${response.kategori}</td>
+                        <td class="p-3 text-sm max-w-xs truncate">${response.kommentar || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function exportToCSV() {
+            const headers = ['Dato', 'Kunde', 'Navn', 'Email', 'Score', 'Kategori', 'Kommentar'];
+            const csvData = [
+                headers.join(','),
+                ...allResponses.map(r => [
+                    new Date(r.created_at).toLocaleDateString('da-DK'),
+                    r.kunde,
+                    r.navn,
+                    r.email,
+                    r.score,
+                    r.kategori,
+                    `"${(r.kommentar || '').replace(/"/g, '""')}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `NPS_Data_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+        
+        function showDashboard() {
+            document.getElementById('survey-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            loadResponses();
+        }
+        
+        function showSurvey() {
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('survey-view').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
