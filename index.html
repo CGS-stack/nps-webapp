@@ -1,538 +1,566 @@
-<!DOCTYPE html>
-<html lang="da">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NPS Kundetilfredshed - CPC Social</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .spinner {
-            border: 3px solid #f3f4f6;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
+import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Download, Upload, Users, TrendingUp, Calendar, MessageCircle, Database } from 'lucide-react';
+
+const SupabaseNPSApp = () => {
+  const [currentView, setCurrentView] = useState('survey');
+  const [responses, setResponses] = useState([]);
+  const [customerName, setCustomerName] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  // Survey state
+  const [score, setScore] = useState(null);
+  const [comment, setComment] = useState('');
+  const [respondentName, setRespondentName] = useState('');
+  const [respondentEmail, setRespondentEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Supabase configuration
+  const SUPABASE_URL = 'https://urfpzxtundzfwiakiiog.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyZnB6eHR1bmR6ZndpYWtpaW9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMDY0NzEsImV4cCI6MjA3MjY4MjQ3MX0.8KV7viGJlz6m6r3rZTR5G1dYFz5pdzd9xmgi0IakCjo';
+
+  // Get customer name from URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const kunde = urlParams.get('kunde');
+    if (kunde) {
+      setCustomerName(kunde);
+    }
+    
+    // Load existing responses for dashboard
+    if (currentView === 'dashboard') {
+      loadResponses();
+    }
+  }, [currentView]);
+
+  // Load responses from Supabase
+  const loadResponses = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/nps_responses?select=*&order=created_at.desc`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-    <div id="app">
-        <!-- Survey View -->
-        <div id="survey-view" class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-            <div class="max-w-2xl mx-auto">
-                <div class="bg-white rounded-2xl shadow-xl p-8">
-                    <div id="survey-form">
-                        <div class="text-center mb-8">
-                            <div class="flex items-center justify-center gap-2 mb-4">
-                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
-                                </svg>
-                                <h1 class="text-3xl font-bold text-gray-800">Kundetilfredshed</h1>
-                            </div>
-                            <p class="text-gray-600">Vi vil gerne høre din mening</p>
-                            <p class="text-xs text-purple-500 mt-2 font-medium">Powered by Supabase</p>
-                            <div id="customer-info" class="mt-4 p-3 bg-blue-50 rounded-lg hidden">
-                                <p class="text-blue-700 font-medium">Kunde: <span id="customer-name"></span></p>
-                            </div>
-                        </div>
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setResponses(data.map(item => ({
+          ...item,
+          dato: item.created_at.split('T')[0],
+          timestamp: new Date(item.created_at).toLocaleString('da-DK')
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading responses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                        <div class="mb-6">
-                            <label class="block text-lg font-medium text-gray-700 mb-2">
-                                Dit navn *
-                            </label>
-                            <input
-                                type="text"
-                                id="respondent-name"
-                                placeholder="Indtast dit fulde navn"
-                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                required
-                            />
-                        </div>
+  // Calculate NPS
+  const calculateNPS = (data = responses) => {
+    if (data.length === 0) return 0;
+    const promoters = data.filter(r => r.score >= 9).length;
+    const detractors = data.filter(r => r.score <= 6).length;
+    return Math.round(((promoters - detractors) / data.length) * 100);
+  };
 
-                        <div class="mb-8">
-                            <label class="block text-lg font-medium text-gray-700 mb-2">
-                                Din email *
-                            </label>
-                            <input
-                                type="email"
-                                id="respondent-email"
-                                placeholder="din.email@firma.dk"
-                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                required
-                            />
-                        </div>
+  // Get NPS category
+  const getNPSCategory = (score) => {
+    if (score >= 9) return 'Promoter';
+    if (score >= 7) return 'Passiv';
+    return 'Detractor';
+  };
 
-                        <div class="mb-8">
-                            <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">
-                                Hvor sandsynligt er det, at du vil anbefale os til en ven eller kollega?
-                            </h2>
-                            
-                            <div class="grid grid-cols-11 gap-2 mb-4" id="score-buttons"></div>
-                            <div class="flex justify-between mt-2 text-sm text-gray-500">
-                                <span>Ikke sandsynligt</span>
-                                <span>Meget sandsynligt</span>
-                            </div>
-                        </div>
+  // Submit NPS response to Supabase
+  const handleSubmit = async () => {
+    if (score !== null && respondentName.trim() && respondentEmail.trim()) {
+      setIsSubmitting(true);
+      
+      try {
+        const responseData = {
+          kunde: customerName || 'Test Kunde',
+          navn: respondentName.trim(),
+          email: respondentEmail.trim(),
+          score: score,
+          kategori: getNPSCategory(score),
+          kommentar: comment.trim(),
+          dato: new Date().toISOString().split('T')[0]
+        };
 
-                        <div class="mb-8">
-                            <label class="block text-lg font-medium text-gray-700 mb-3">
-                                Har du yderligere kommentarer? (valgfrit)
-                            </label>
-                            <textarea
-                                id="comment"
-                                placeholder="Del dine tanker med os..."
-                                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                rows="4"
-                            ></textarea>
-                        </div>
+        console.log('Sending to Supabase:', responseData);
 
-                        <button
-                            id="submit-btn"
-                            class="w-full bg-gray-300 text-gray-500 font-bold py-4 px-6 rounded-lg text-lg cursor-not-allowed"
-                            disabled
-                        >
-                            Send Feedback
-                        </button>
-                    </div>
-
-                    <div id="thank-you" class="text-center py-12 hidden">
-                        <div class="text-6xl mb-4">🙏</div>
-                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Tak for din feedback!</h2>
-                        <p class="text-gray-600 mb-4">Dit svar er blevet gemt i vores Supabase database.</p>
-                        <p class="text-sm text-gray-500 mb-8">Vi har også sendt en notifikation til vores team.</p>
-                        <button
-                            id="view-dashboard"
-                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            Se Dashboard (Admin)
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dashboard View -->
-        <div id="dashboard-view" class="min-h-screen bg-gray-50 p-6 hidden">
-            <div class="max-w-7xl mx-auto">
-                <!-- Header -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <div class="flex items-center gap-2 mb-2">
-                                <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
-                                </svg>
-                                <h1 class="text-3xl font-bold text-gray-800">NPS Dashboard</h1>
-                            </div>
-                            <p class="text-gray-600">Real-time Net Promoter Score Analyse med Supabase</p>
-                        </div>
-                        <div class="flex gap-3">
-                            <button
-                                id="refresh-data"
-                                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
-                            >
-                                <div class="spinner hidden" id="loading-spinner"></div>
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"></path>
-                                </svg>
-                                <span id="refresh-text">Refresh Data</span>
-                            </button>
-                            <button
-                                id="export-csv"
-                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                            >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Export CSV
-                            </button>
-                            <button
-                                id="back-to-survey"
-                                class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                            >
-                                Tilbage til Undersøgelse
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-600 text-sm">Samlet NPS Score</p>
-                                <p class="text-3xl font-bold text-blue-600" id="total-nps">0</p>
-                            </div>
-                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-600 text-sm">Totale Svar</p>
-                                <p class="text-3xl font-bold text-gray-800" id="total-responses">0</p>
-                            </div>
-                            <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-600 text-sm">Promoters</p>
-                                <p class="text-3xl font-bold text-green-600" id="promoters-count">0</p>
-                            </div>
-                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                <div class="w-4 h-4 bg-green-600 rounded-full"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-600 text-sm">Detractors</p>
-                                <p class="text-3xl font-bold text-red-600" id="detractors-count">0</p>
-                            </div>
-                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                                <div class="w-4 h-4 bg-red-600 rounded-full"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Data Table -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Seneste Svar</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b">
-                                    <th class="text-left p-3">Dato</th>
-                                    <th class="text-left p-3">Kunde</th>
-                                    <th class="text-left p-3">Navn</th>
-                                    <th class="text-left p-3">Email</th>
-                                    <th class="text-left p-3">Score</th>
-                                    <th class="text-left p-3">Kategori</th>
-                                    <th class="text-left p-3">Kommentar</th>
-                                </tr>
-                            </thead>
-                            <tbody id="responses-table">
-                                <tr>
-                                    <td colspan="7" class="p-8 text-center text-gray-500">
-                                        Indlæser data fra Supabase...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Configuration
-        const SUPABASE_URL = 'https://urfpzxtundzfwiakiiog.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyZnB6eHR1bmR6ZndpYWtpaW9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMDY0NzEsImV4cCI6MjA3MjY4MjQ3MX0.8KV7viGJlz6m6r3rZTR5G1dYFz5pdzd9xmgi0IakCjo';
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWChWvDa6ddRgYSDPMNSra0nU_0P8IMuT0p5AX6MvfWYLhD3Y46VSHvWDFbR30uX/exec';
-        
-        // State
-        let selectedScore = null;
-        let customerName = '';
-        let allResponses = [];
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get customer name from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            customerName = urlParams.get('kunde') || '';
-            
-            if (customerName) {
-                document.getElementById('customer-name').textContent = customerName;
-                document.getElementById('customer-info').classList.remove('hidden');
-            }
-            
-            // Generate score buttons
-            generateScoreButtons();
-            
-            // Add event listeners
-            document.getElementById('respondent-name').addEventListener('input', validateForm);
-            document.getElementById('respondent-email').addEventListener('input', validateForm);
-            document.getElementById('submit-btn').addEventListener('click', handleSubmit);
-            document.getElementById('view-dashboard').addEventListener('click', showDashboard);
-            document.getElementById('back-to-survey').addEventListener('click', showSurvey);
-            document.getElementById('refresh-data').addEventListener('click', loadResponses);
-            document.getElementById('export-csv').addEventListener('click', exportToCSV);
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/nps_responses`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(responseData)
         });
-        
-        function generateScoreButtons() {
-            const container = document.getElementById('score-buttons');
-            
-            for (let i = 0; i <= 10; i++) {
-                const button = document.createElement('button');
-                button.textContent = i;
-                button.className = getScoreButtonClass(i, false);
-                button.addEventListener('click', () => selectScore(i));
-                container.appendChild(button);
-            }
-        }
-        
-        function getScoreButtonClass(score, selected) {
-            const baseClass = 'h-12 rounded-lg font-bold text-lg transition-all duration-200';
-            
-            if (selected) {
-                if (score <= 6) return `${baseClass} bg-red-500 text-white shadow-lg transform scale-105`;
-                if (score <= 8) return `${baseClass} bg-orange-400 text-white shadow-lg transform scale-105`;
-                return `${baseClass} bg-green-500 text-white shadow-lg transform scale-105`;
-            } else {
-                if (score <= 6) return `${baseClass} bg-red-100 text-red-700 hover:bg-red-200`;
-                if (score <= 8) return `${baseClass} bg-orange-100 text-orange-700 hover:bg-orange-200`;
-                return `${baseClass} bg-green-100 text-green-700 hover:bg-green-200`;
-            }
-        }
-        
-        function selectScore(score) {
-            selectedScore = score;
-            
-            const buttons = document.querySelectorAll('#score-buttons button');
-            buttons.forEach((button, index) => {
-                button.className = getScoreButtonClass(index, index === score);
-            });
-            
-            validateForm();
-        }
-        
-        function validateForm() {
-            const name = document.getElementById('respondent-name').value.trim();
-            const email = document.getElementById('respondent-email').value.trim();
-            const submitBtn = document.getElementById('submit-btn');
-            
-            const isValid = selectedScore !== null && name && email;
-            
-            if (isValid) {
-                submitBtn.disabled = false;
-                submitBtn.className = 'w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer';
-                submitBtn.textContent = 'Send Feedback';
-            } else {
-                submitBtn.disabled = true;
-                submitBtn.className = 'w-full bg-gray-300 text-gray-500 font-bold py-4 px-6 rounded-lg text-lg cursor-not-allowed';
-                submitBtn.textContent = 'Udfyld alle felter';
-            }
-        }
-        
-        function getNPSCategory(score) {
-            if (score >= 9) return 'Promoter';
-            if (score >= 7) return 'Passiv';
-            return 'Detractor';
-        }
-        
-        async function handleSubmit() {
-            const name = document.getElementById('respondent-name').value.trim();
-            const email = document.getElementById('respondent-email').value.trim();
-            const comment = document.getElementById('comment').value.trim();
-            
-            if (selectedScore === null || !name || !email) {
-                alert('Udfyld venligst alle påkrævede felter');
-                return;
-            }
-            
-            const submitBtn = document.getElementById('submit-btn');
-            submitBtn.textContent = 'Sender til database...';
-            submitBtn.disabled = true;
-            
-            try {
-                const responseData = {
-                    kunde: customerName || 'Test Kunde',
-                    navn: name,
-                    email: email,
-                    score: selectedScore,
-                    kategori: getNPSCategory(selectedScore),
-                    kommentar: comment,
-                    dato: new Date().toISOString().split('T')[0]
-                };
-                
-                console.log('Sending to Supabase:', responseData);
-                
-                // Send to Supabase
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/nps_responses`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify(responseData)
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Supabase success:', result);
-                    
-                    // Send email notification
-                    try {
-                        await fetch(GOOGLE_SCRIPT_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(responseData)
-                        });
-                        console.log('Email notification sent');
-                    } catch (emailError) {
-                        console.log('Email notification failed:', emailError);
-                    }
-                    
-                    // Show thank you
-                    document.getElementById('survey-form').classList.add('hidden');
-                    document.getElementById('thank-you').classList.remove('hidden');
-                    
-                } else {
-                    const error = await response.text();
-                    throw new Error(`Supabase error: ${error}`);
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Der opstod en fejl ved indsendelse: ' + error.message);
-                submitBtn.textContent = 'Send Feedback';
-                submitBtn.disabled = false;
-            }
-        }
-        
-        async function loadResponses() {
-            const refreshBtn = document.getElementById('refresh-data');
-            const refreshText = document.getElementById('refresh-text');
-            const spinner = document.getElementById('loading-spinner');
-            
-            refreshText.textContent = 'Indlæser...';
-            spinner.classList.remove('hidden');
-            
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/nps_responses?select=*&order=created_at.desc`, {
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    allResponses = await response.json();
-                    updateDashboard();
-                    refreshText.textContent = 'Opdateret!';
-                    setTimeout(() => {
-                        refreshText.textContent = 'Refresh Data';
-                    }, 2000);
-                } else {
-                    throw new Error('Failed to load data');
-                }
-            } catch (error) {
-                console.error('Error loading responses:', error);
-                refreshText.textContent = 'Fejl';
-                setTimeout(() => {
-                    refreshText.textContent = 'Refresh Data';
-                }, 2000);
-            } finally {
-                spinner.classList.add('hidden');
-            }
-        }
-        
-        function updateDashboard() {
-            // Calculate stats
-            const total = allResponses.length;
-            const promoters = allResponses.filter(r => r.score >= 9).length;
-            const detractors = allResponses.filter(r => r.score <= 6).length;
-            const nps = total > 0 ? Math.round(((promoters - detractors) / total) * 100) : 0;
-            
-            // Update stats
-            document.getElementById('total-nps').textContent = nps;
-            document.getElementById('total-responses').textContent = total;
-            document.getElementById('promoters-count').textContent = promoters;
-            document.getElementById('detractors-count').textContent = detractors;
-            
-            // Update table
-            const tableBody = document.getElementById('responses-table');
-            
-            if (total === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="p-8 text-center text-gray-500">
-                            Ingen data fundet. Send første NPS undersøgelse!
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            tableBody.innerHTML = allResponses.slice(0, 20).map(response => {
-                const date = new Date(response.created_at).toLocaleDateString('da-DK');
-                const scoreClass = response.score <= 6 ? 'bg-red-100 text-red-800' :
-                                 response.score <= 8 ? 'bg-orange-100 text-orange-800' :
-                                 'bg-green-100 text-green-800';
-                
-                return `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-3">${date}</td>
-                        <td class="p-3 font-medium">${response.kunde}</td>
-                        <td class="p-3">${response.navn}</td>
-                        <td class="p-3 text-sm text-gray-600">${response.email}</td>
-                        <td class="p-3">
-                            <span class="px-2 py-1 rounded text-sm ${scoreClass}">
-                                ${response.score}
-                            </span>
-                        </td>
-                        <td class="p-3 text-sm">${response.kategori}</td>
-                        <td class="p-3 text-sm max-w-xs truncate">${response.kommentar || '-'}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-        
-        function exportToCSV() {
-            const headers = ['Dato', 'Kunde', 'Navn', 'Email', 'Score', 'Kategori', 'Kommentar'];
-            const csvData = [
-                headers.join(','),
-                ...allResponses.map(r => [
-                    new Date(r.created_at).toLocaleDateString('da-DK'),
-                    r.kunde,
-                    r.navn,
-                    r.email,
-                    r.score,
-                    r.kategori,
-                    `"${(r.kommentar || '').replace(/"/g, '""')}"`
-                ].join(','))
-            ].join('\n');
 
-            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `NPS_Data_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Success:', result);
+          setSubmitted(true);
+          
+          // Send email notification (using Google Apps Script for now)
+          await sendEmailNotification(responseData);
+        } else {
+          const error = await response.text();
+          throw new Error(`Supabase error: ${error}`);
         }
-        
-        function showDashboard() {
-            document.getElementById('survey-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            loadResponses();
-        }
-        
-        function showSurvey() {
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('survey-view').classList.remove('hidden');
-        }
-    </script>
-</body>
-</html>
+      } catch (error) {
+        console.error('Error submitting NPS response:', error);
+        alert('Der opstod en fejl ved indsendelse. Prøv venligst igen.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  // Send email notification (using existing Google Apps Script)
+  const sendEmailNotification = async (data) => {
+    try {
+      const emailResponse = await fetch('https://script.google.com/macros/s/AKfycbzWChWvDa6ddRgYSDPMNSra0nU_0P8IMuT0p5AX6MvfWYLhD3Y46VSHvWDFbR30uX/exec', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      console.log('Email notification sent');
+    } catch (error) {
+      console.error('Failed to send email notification:', error);
+    }
+  };
+
+  // Export to CSV
+  const exportToCSV = () => {
+    const headers = ['Dato', 'Kunde', 'Navn', 'Email', 'Score', 'Kategori', 'Kommentar', 'Timestamp'];
+    const csvData = [
+      headers.join(','),
+      ...responses.map(r => [
+        r.dato,
+        r.kunde,
+        r.navn,
+        r.email,
+        r.score,
+        r.kategori,
+        `"${(r.kommentar || '').replace(/"/g, '""')}"`,
+        r.timestamp
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `NPS_Data_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  // Get stats
+  const getStats = () => {
+    const total = responses.length;
+    const promoters = responses.filter(r => r.score >= 9).length;
+    const passives = responses.filter(r => r.score >= 7 && r.score <= 8).length;
+    const detractors = responses.filter(r => r.score <= 6).length;
+    
+    return { total, promoters, passives, detractors };
+  };
+
+  // Get customer data
+  const getCustomerData = () => {
+    const customers = {};
+    responses.forEach(r => {
+      if (!customers[r.kunde]) {
+        customers[r.kunde] = [];
+      }
+      customers[r.kunde].push(r);
+    });
+    
+    return Object.entries(customers).map(([name, data]) => ({
+      kunde: name,
+      responses: data.length,
+      latestScore: data[0]?.score || 0, // Most recent first due to desc order
+      nps: calculateNPS(data),
+      avgScore: Math.round(data.reduce((sum, r) => sum + r.score, 0) / data.length * 10) / 10
+    }));
+  };
+
+  // Get trend data
+  const getTrendData = () => {
+    const monthlyData = {};
+    responses.forEach(r => {
+      const month = r.dato.substring(0, 7); // YYYY-MM
+      if (!monthlyData[month]) {
+        monthlyData[month] = [];
+      }
+      monthlyData[month].push(r);
+    });
+
+    return Object.entries(monthlyData)
+      .map(([month, data]) => ({
+        month,
+        nps: calculateNPS(data),
+        responses: data.length,
+        avgScore: Math.round(data.reduce((sum, r) => sum + r.score, 0) / data.length * 10) / 10
+      }))
+      .sort((a, b) => a.month.localeCompare(b.month));
+  };
+
+  const stats = getStats();
+  const customerData = getCustomerData();
+  const trendData = getTrendData();
+
+  if (currentView === 'survey') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            {!submitted ? (
+              <>
+                <div className="text-center mb-8">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <Database className="text-blue-600" size={32} />
+                    <h1 className="text-3xl font-bold text-gray-800">Kundetilfredshed</h1>
+                  </div>
+                  <p className="text-gray-600">Vi vil gerne høre din mening</p>
+                  <p className="text-xs text-gray-400 mt-2">Powered by Supabase</p>
+                  {customerName && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                      <p className="text-blue-700 font-medium">Kunde: {customerName}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-lg font-medium text-gray-700 mb-2">
+                    Dit navn *
+                  </label>
+                  <input
+                    type="text"
+                    value={respondentName}
+                    onChange={(e) => setRespondentName(e.target.value)}
+                    placeholder="Indtast dit fulde navn"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="mb-8">
+                  <label className="block text-lg font-medium text-gray-700 mb-2">
+                    Din email *
+                  </label>
+                  <input
+                    type="email"
+                    value={respondentEmail}
+                    onChange={(e) => setRespondentEmail(e.target.value)}
+                    placeholder="din.email@firma.dk"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+                    Hvor sandsynligt er det, at du vil anbefale os til en ven eller kollega?
+                  </h2>
+                  
+                  <div className="grid grid-cols-11 gap-2 mb-4">
+                    {[...Array(11)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setScore(i)}
+                        className={`h-12 rounded-lg font-bold text-lg transition-all duration-200 ${
+                          score === i
+                            ? i <= 6 ? 'bg-red-500 text-white shadow-lg transform scale-105'
+                              : i <= 8 ? 'bg-orange-400 text-white shadow-lg transform scale-105'
+                              : 'bg-green-500 text-white shadow-lg transform scale-105'
+                            : i <= 6 ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                              : i <= 8 ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                              : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex justify-between mt-2 text-sm text-gray-500">
+                    <span>Ikke sandsynligt</span>
+                    <span>Meget sandsynligt</span>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <label className="block text-lg font-medium text-gray-700 mb-3">
+                    Har du yderligere kommentarer? (valgfrit)
+                  </label>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Del dine tanker med os..."
+                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    rows={4}
+                  />
+                </div>
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={score === null || !respondentName.trim() || !respondentEmail.trim() || isSubmitting}
+                  className="w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors duration-200"
+                >
+                  {isSubmitting ? 'Sender til database...' : 'Send Feedback'}
+                </button>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🙏</div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Tak for din feedback!</h2>
+                <p className="text-gray-600 mb-4">Dit svar er blevet gemt i vores Supabase database.</p>
+                <p className="text-sm text-gray-500 mb-8">Vi har også sendt en notifikation til vores team.</p>
+                <button
+                  onClick={() => setCurrentView('dashboard')}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Se Dashboard (Admin)
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Database className="text-blue-600" size={28} />
+                <h1 className="text-3xl font-bold text-gray-800">NPS Dashboard</h1>
+              </div>
+              <p className="text-gray-600">Real-time Net Promoter Score Analyse med Supabase</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={loadResponses}
+                disabled={loading}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+              >
+                <Database size={20} />
+                {loading ? 'Opdaterer...' : 'Refresh Data'}
+              </button>
+              <button
+                onClick={exportToCSV}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <Download size={20} />
+                Export CSV
+              </button>
+              <button
+                onClick={() => setCurrentView('survey')}
+                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Tilbage til Undersøgelse
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Samlet NPS Score</p>
+                <p className="text-3xl font-bold text-blue-600">{calculateNPS()}</p>
+              </div>
+              <TrendingUp className="text-blue-600" size={32} />
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Totale Svar</p>
+                <p className="text-3xl font-bold text-gray-800">{stats.total}</p>
+              </div>
+              <Users className="text-gray-600" size={32} />
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Promoters</p>
+                <p className="text-3xl font-bold text-green-600">{stats.promoters}</p>
+              </div>
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="w-4 h-4 bg-green-600 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Detractors</p>
+                <p className="text-3xl font-bold text-red-600">{stats.detractors}</p>
+              </div>
+              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <div className="w-4 h-4 bg-red-600 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Indlæser data fra Supabase...</p>
+          </div>
+        ) : (
+          <>
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* NPS Distribution */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Score Fordeling</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Detractors (0-6)', value: stats.detractors, fill: '#ef4444' },
+                        { name: 'Passives (7-8)', value: stats.passives, fill: '#f97316' },
+                        { name: 'Promoters (9-10)', value: stats.promoters, fill: '#10b981' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
+                    />
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Trend Chart */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">NPS Trend</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="nps" stroke="#3b82f6" strokeWidth={3} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Customer Table */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Kunde Oversigt</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-3">Kunde</th>
+                      <th className="text-left p-3">Kontaktperson</th>
+                      <th className="text-left p-3">Antal Svar</th>
+                      <th className="text-left p-3">Seneste Score</th>
+                      <th className="text-left p-3">Gennemsnit</th>
+                      <th className="text-left p-3">NPS</th>
+                      <th className="text-left p-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {customerData.map((customer, index) => {
+                      const status = customer.latestScore >= 9 ? 'Fremragende' : customer.latestScore >= 7 ? 'Okay' : 'Kritisk';
+                      const statusColor = customer.latestScore >= 9 ? 'text-green-600' : customer.latestScore >= 7 ? 'text-orange-600' : 'text-red-600';
+                      
+                      return (
+                        <tr key={index} className="border-b hover:bg-gray-50">
+                          <td className="p-3 font-medium">{customer.kunde}</td>
+                          <td className="p-3 text-sm text-gray-600">
+                            {responses.filter(r => r.kunde === customer.kunde)[0]?.navn || 'Flere respondenter'}
+                          </td>
+                          <td className="p-3">{customer.responses}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-1 rounded ${
+                              customer.latestScore <= 6 ? 'bg-red-100 text-red-800' :
+                              customer.latestScore <= 8 ? 'bg-orange-100 text-orange-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {customer.latestScore}
+                            </span>
+                          </td>
+                          <td className="p-3">{customer.avgScore}</td>
+                          <td className="p-3 font-bold">{customer.nps}</td>
+                          <td className="p-3">
+                            <span className={`font-medium ${statusColor}`}>
+                              {status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Recent Comments */}
+            {responses.filter(r => r.kommentar).length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <MessageCircle size={24} />
+                  Seneste Kommentarer
+                </h3>
+                <div className="space-y-4">
+                  {responses
+                    .filter(r => r.kommentar)
+                    .slice(0, 5)
+                    .map((response, index) => (
+                      <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-medium text-gray-800">{response.kunde}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-1 rounded text-sm ${
+                              response.score >= 9 ? 'bg-green-100 text-green-800' :
+                              response.score >= 7 ? 'bg-orange-100 text-orange-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              Score: {response.score}
+                            </span>
+                            <span className="text-sm text-gray-500">{response.dato}</span>
+                          </div>
+                        </div>
+                        <p className="text-gray-600 italic">"{response.kommentar}"</p>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default SupabaseNPSApp;
